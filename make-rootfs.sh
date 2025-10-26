@@ -3,7 +3,7 @@ umask 022
 if [ -e .env ];then
 source .env
 fi
-if [ -z $jenux_iso_arch ]||[ -z $jenux_iso_livemode ]||[ -z $jenux_iso_preset ];then
+if [ -z $jenux_iso_arch ]||[ -z $jenux_iso_livemode ]||[ -z $jenux_iso_preset ]||[ -z $jenux_iso_docker_repo ];then
 if [ -z $jenux_iso_arch ];then
 echo jenux_iso_arch is not set
 else
@@ -19,8 +19,16 @@ echo jenux_iso_preset is not set
 else
 echo jenux_iso_preset: $jenux_iso_preset
 fi
+if [ -z $jenux_iso_docker_repo ];then
+echo jenux_iso_docker_repo is not set
+else
+echo jenux_iso_docker_repo: $jenux_iso_docker_repo
+fi
 echo environment error, see .venv.example, all vars must be set.
 exit 1
+fi
+if echo $jenux_iso_arch|grep -qw _detect_;then
+export jenux_iso_arch=`uname -m`
 fi
 if echo $jenux_iso_arch|grep -qw _detect_;then
 export jenux_iso_arch=`uname -m`
@@ -124,7 +132,7 @@ cat ${script_path}/packages.${arch}|tr \\n \  |sed "s| linux | linux-aarch64 lin
 mv pkg.$arch ${script_path}/packages.${arch}
 fi
 export isopkgs=`echo -en base grub lynx curl dosfstools e2fsprogs squashfs-tools arch-install-scripts mkinitcpio-archiso sbsigntools shim-signed git gptfdisk parted unzip dos2unix`
-if uname -m|grep -qw x86_64;then
+if echo $arch|grep -qw x86_64;then
 export isopkgs=`echo -en $isopkgs`" qemu-user-static qemu-user-static-binfmt"
 fi
 while true;do
@@ -164,7 +172,19 @@ export dockerplat="--platform linux/amd64"
 export dockerplat="--platform linux/"${arch}
 ;;
 esac
-cd "${work_dir}/${arch}/airootfs"
-rm -rf etc/pacman.d/gnupg
-tar -c . | docker image import /dev/stdin jenux-${preset}-rootfs $dockerplat
+rm -rf "${work_dir}/${arch}/airootfs/etc/pacman.d/gnupg"
+cat >> dockerfile.`echo -en $dockerplat|sed "s|--platform linux\/||g"|tr / +`<<EOF
+FROM scratch
+COPY "${work_dir}/${arch}/airootfs/" /
+ONBUILD RUN pacman-key --init&&pacman-key --populate
+EOF
+docker build --tag $jenux_iso_docker_repo":"jenux-${preset}-${arch} $dockerplat . -f dockerfile.`echo -en $dockerplat|sed "s|--platform linux\/||g"|tr / +`
+docker push $jenux_iso_docker_repo":"jenux-${preset}-${arch}
+if docker manifest inspect $jenux_iso_docker_repo":"jenux-${preset}"-rootfs" 2>/dev/stdout|grep -iqw `echo -en $dockerplat|sed "s|--platform linux\/||g"`;then
+true
+else
+docker manifest create $jenux_iso_docker_repo":"jenux-${preset}"-rootfs"  --amend $jenux_iso_docker_repo":"jenux-${preset}-${arch} 
+docker manifest push $jenux_iso_docker_repo":"jenux-${preset}"-rootfs"
+fi
+rm -rf "${work_dir}" dockerfile.`echo -en $dockerplat|sed "s|--platform linux\/||g"|tr / +`
 done

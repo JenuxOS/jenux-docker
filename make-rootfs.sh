@@ -196,7 +196,7 @@ fi
 done
 rm ${script_path}/packages.${arch} ${script_path}/pacman.${arch}.conf 
 while true;do
-curl -LO "${work_dir}/${arch}/airootfs/etc/pacman.conf" https://nashcentral.duckdns.org/autobuildres/linux/pacman.$arch.conf
+curl -Lo "${work_dir}/${arch}/airootfs/etc/pacman.conf" https://nashcentral.duckdns.org/autobuildres/linux/pacman.$arch.conf
 if cat "${work_dir}/${arch}/airootfs/etc/pacman.conf" |grep -iqw jenux;then
 break
 else

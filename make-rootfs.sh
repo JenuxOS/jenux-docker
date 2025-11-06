@@ -30,9 +30,6 @@ fi
 if echo $jenux_iso_arch|grep -qw _detect_;then
 export jenux_iso_arch=`uname -m`
 fi
-if echo $jenux_iso_arch|grep -qw _detect_;then
-export jenux_iso_arch=`uname -m`
-fi
 export preset=$jenux_iso_preset
 export arch=$jenux_iso_arch
 if echo $jenux_iso_arch|grep -iqw all;then

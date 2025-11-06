@@ -176,7 +176,7 @@ rm installtest.${arch}
 cat ${script_path}/packages.${arch}|tr \\n \  |sed "s| linux | linux-aarch64 linux-aarch64-headers raspberrypi-bootloader firmware-raspberrypi pi-bluetooth hciattach-rpi3 fbdetect |g;s| linux-headers | |g"|tr \  \\n |sort|uniq > pkg.$arch
 mv pkg.$arch ${script_path}/packages.${arch}
 fi
-export isopkgs=`echo -en base grub lynx curl dosfstools e2fsprogs squashfs-tools arch-install-scripts mkinitcpio-archiso sbsigntools shim-signed git gptfdisk parted unzip dos2unix qemu-img`
+export isopkgs=`echo -en base grub lynx curl dosfstools e2fsprogs squashfs-tools arch-install-scripts mkinitcpio-archiso sbsigntools shim-signed git gptfdisk parted unzip dos2unix qemu-img `
 if echo $arch|grep -qw x86_64;then
 export isopkgs=`echo -en $isopkgs`" qemu-user-static qemu-user-static-binfmt "
 fi
@@ -187,7 +187,7 @@ if echo $arch|grep -qw aarch64;then
 export isopkgs=`echo -en $isopkgs`" archlinuxarm-keyring "
 fi
 while true;do
-if pacstrap -C "${work_dir}/pacman.${arch}.conf" -M -G "${work_dir}/${arch}/airootfs" --needed --overwrite \* `echo -en $isopkgs`;then
+if pacstrap -C "${work_dir}/pacman.${arch}.conf" -M -G "${work_dir}/${arch}/airootfs" --needed --overwrite \\* `echo -en $isopkgs`;then
 rm -rf "${work_dir}/${arch}/airootfs/var/cache/pacman/pkg/"*
 break
 else
@@ -227,15 +227,11 @@ rm -rf "${work_dir}/${arch}/airootfs/etc/pacman.d/gnupg"
 cat >> dockerfile.`echo -en $dockerplat|sed "s|--platform linux\/||g"|tr / +`<<EOF
 FROM scratch
 COPY "${work_dir}/${arch}/airootfs/" /
-ONBUILD RUN pacman-key --init&&pacman-key --populate&&pacman --noconfirm --overwrite \* -Syu
+ONBUILD RUN pacman-key --init&&pacman-key --populate&&pacman --noconfirm --overwrite \\* -Syu
 EOF
 docker build --tag $jenux_iso_docker_repo":"jenux-${preset}-${arch} $dockerplat . -f dockerfile.`echo -en $dockerplat|sed "s|--platform linux\/||g"|tr / +`
 docker push $jenux_iso_docker_repo":"jenux-${preset}-${arch}
-if docker manifest inspect $jenux_iso_docker_repo":"jenux-${preset}"-rootfs" 2>/dev/stdout|grep -iqw `echo -en $dockerplat|sed "s|--platform linux\/||g"`;then
-true
-else
 docker manifest create $jenux_iso_docker_repo":"jenux-${preset}"-rootfs"  --amend $jenux_iso_docker_repo":"jenux-${preset}-${arch} 
 docker manifest push $jenux_iso_docker_repo":"jenux-${preset}"-rootfs"
-fi
 rm -rf "${work_dir}" dockerfile.`echo -en $dockerplat|sed "s|--platform linux\/||g"|tr / +`
 done

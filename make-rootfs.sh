@@ -95,8 +95,49 @@ sed -i "s|Include = \/etc\/pacman.d\/mirrorlist|Include = ${work_dir}\/${arch}\/
 fi
 if [ $arch = "i686" ];then
 mkdir -p "${work_dir}/${arch}/airootfs/etc/pacman.d"
-curl -sL https://git.archlinux32.org/packages/plain/core/pacman-mirrorlist/mirrorlist|sed "s|#Server|Server|g;/mirror.datacenter.by/d;/archlinux32.agoctrl.org/d;/de.mirror.archlinux32.org/d;/\/mirror.archlinux32.org\//d;/mirror.archlinux32.oss/d" > "${work_dir}/${arch}/airootfs/etc/pacman.d/mirrorlist"
+while true;do
+if curl -Lo "${work_dir}/${arch}/airootfs/etc/pacman.d/mirrorlist" https://git.archlinux32.org/packages/plain/core/pacman-mirrorlist/mirrorlist;then
+break
+else
+continue
+fi
+done
+sed -i "s|#Server|Server|g;/mirror.datacenter.by/d;/archlinux32.agoctrl.org/d;/de.mirror.archlinux32.org/d;/\/mirror.archlinux32.org\//d;/mirror.archlinux32.oss/d" "${work_dir}/${arch}/airootfs/etc/pacman.d/mirrorlist"
 sed -i "s|Include = \/etc\/pacman.d\/mirrorlist|Include = ${work_dir}\/${arch}\/airootfs\/etc\/pacman.d\/mirrorlist|g" "${work_dir}/pacman.${arch}.conf"
+export mirrorurl=`cat ${work_dir}/${arch}/airootfs/etc/pacman.d/mirrorlist|grep -i server|head -n 1|sed "s|\\$arch|$arch|g;s|\\$repo|core|g;s|Server = ||g"`
+export keyringurl=`lynx --dump -listonly -nonumbers $mirrorurl|grep archlinux32-keyring|grep .tar|sed "/transition/d;/.sig/d"|tail -n 1|cut -f 4 -d \  `
+while true;do
+if curl -LO $keyringurl;then
+break
+else
+continue
+fi
+done
+pacman --needed --noconfirm -U *.pkg*
+rm *.pkg*
+fi
+if [ $arch = "x86_64" ];then
+mkdir -p "${work_dir}/${arch}/airootfs/etc/pacman.d"
+while true;do
+if curl -L https://archlinux.org/packages/core/any/pacman-mirrorlist/download/|tar --zstd -C ${work_dir}/${arch}/airootfs -x etc/pacman.d/mirrorlist;then
+break
+else
+continue
+fi
+done
+sed -i "s|#Server|Server|g" "${work_dir}/${arch}/airootfs/etc/pacman.d/mirrorlist"
+sed -i "s|Include = \/etc\/pacman.d\/mirrorlist|Include = ${work_dir}\/${arch}\/airootfs\/etc\/pacman.d\/mirrorlist|g" "${work_dir}/pacman.${arch}.conf"
+export mirrorurl=`cat ${work_dir}/${arch}/airootfs/etc/pacman.d/mirrorlist|grep -i server|head -n 1|sed "s|\\$arch|$arch|g;s|\\$repo|core|g;s|Server = ||g"`
+export keyringurl=`lynx --dump -listonly -nonumbers $mirrorurl|grep archlinux-keyring|grep .tar|sed "/transition/d;/.sig/d"|tail -n 1|cut -f 4 -d \  `
+while true;do
+if curl -LO $keyringurl;then
+break
+else
+continue
+fi
+done
+pacman --needed --noconfirm -U *.pkg*
+rm *.pkg*
 fi
 mkdir -p ${work_dir}/${arch}/airootfs/var/lib/pacman/
 }
@@ -135,9 +176,15 @@ rm installtest.${arch}
 cat ${script_path}/packages.${arch}|tr \\n \  |sed "s| linux | linux-aarch64 linux-aarch64-headers raspberrypi-bootloader firmware-raspberrypi pi-bluetooth hciattach-rpi3 fbdetect |g;s| linux-headers | |g"|tr \  \\n |sort|uniq > pkg.$arch
 mv pkg.$arch ${script_path}/packages.${arch}
 fi
-export isopkgs=`echo -en base grub lynx curl dosfstools e2fsprogs squashfs-tools arch-install-scripts mkinitcpio-archiso sbsigntools shim-signed git gptfdisk parted unzip dos2unix`
+export isopkgs=`echo -en base grub lynx curl dosfstools e2fsprogs squashfs-tools arch-install-scripts mkinitcpio-archiso sbsigntools shim-signed git gptfdisk parted unzip dos2unix qemu-img`
 if echo $arch|grep -qw x86_64;then
-export isopkgs=`echo -en $isopkgs`" qemu-user-static qemu-user-static-binfmt"
+export isopkgs=`echo -en $isopkgs`" qemu-user-static qemu-user-static-binfmt "
+fi
+if echo $arch|grep -qw i686;then
+export isopkgs=`echo -en $isopkgs`" archlinux32-keyring "
+fi
+if echo $arch|grep -qw aarch64;then
+export isopkgs=`echo -en $isopkgs`" archlinuxarm-keyring "
 fi
 while true;do
 if pacstrap -C "${work_dir}/pacman.${arch}.conf" -M -G "${work_dir}/${arch}/airootfs" --needed --overwrite \* `echo -en $isopkgs`;then

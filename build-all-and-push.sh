@@ -1,5 +1,4 @@
-rm -rf work /var/lib/docker/*
-systemctl restart docker
+rm -rf work
 for arch in "x86_64" "i686" "aarch64";do
 cat > .env<<EOF
 jenux_iso_arch=$arch

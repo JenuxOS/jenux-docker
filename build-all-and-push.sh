@@ -7,7 +7,7 @@ echo DOCKERPAT not set
 fi
 exit 2
 fi
-echo $PAT|docker login -u $USERNAME -p -
+echo $DOCKERPAT|docker login -u $DOCKERUSERNAME -p -
 rm -rf work
 for arch in "x86_64" "i686" "aarch64";do
 cat > .env<<EOF

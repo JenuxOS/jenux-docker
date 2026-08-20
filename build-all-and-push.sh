@@ -1,9 +1,9 @@
-if [ -z $USERNAME ]||[ -z $PAT ]];then
-if [ -z $USERNAME ];then
-echo username not set
+if [ -z $DOCKERUSERNAME ]||[ -z $DOCKERPAT ];then
+if [ -z $DOCKERUSERNAME ];then
+echo DOCKERUSERNAME not set
 fi
 if [ -z $PAT ];then
-echo PAT not set
+echo DOCKERPAT not set
 fi
 exit 2
 fi

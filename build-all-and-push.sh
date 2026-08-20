@@ -1,3 +1,13 @@
+if [ -z $USERNAME ]||[ -z $PAT ]];then
+if [ -z $USERNAME ];then
+echo username not set
+fi
+if [ -z $PAT ];then
+echo PAT not set
+fi
+exit 2
+fi
+echo $PAT|docker login -u $USERNAME -p -
 rm -rf work
 for arch in "x86_64" "i686" "aarch64";do
 cat > .env<<EOF
@@ -9,3 +19,4 @@ EOF
 ./make-rootfs.sh
 rm .env
 done
+docker logout

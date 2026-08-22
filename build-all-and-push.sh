@@ -1,3 +1,4 @@
+#!/bin/bash
 if [ -z $DOCKERUSERNAME ]||[ -z $DOCKERPAT ];then
 if [ -z $DOCKERUSERNAME ];then
 echo DOCKERUSERNAME not set

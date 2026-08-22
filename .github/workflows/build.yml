@@ -34,8 +34,8 @@ jobs:
         run: |
           cp .env.example .env
           cat >> .env<<EOF
-          DOCKERUSERNAME=${{ github.secrets.DOCKERUSERNAME }}
-          DOCKERPAT=${{ github.secrets.DOCKERPAT }}
+          DOCKERUSERNAME=${{ secrets.DOCKERUSERNAME }}
+          DOCKERPAT=${{ secrets.DOCKERPAT }}
           EOF
       - name: Build Docker image
         run: docker build . -t containerbuild

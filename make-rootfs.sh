@@ -176,6 +176,16 @@ rm installtest.${arch}
 cat ${script_path}/packages.${arch}|tr \\n \  |sed "s| linux | linux-aarch64 linux-aarch64-headers raspberrypi-bootloader firmware-raspberrypi pi-bluetooth hciattach-rpi3 fbdetect |g;s| linux-headers | |g"|tr \  \\n |sort|uniq > pkg.$arch
 mv pkg.$arch ${script_path}/packages.${arch}
 fi
+if echo $arch|grep -qw x86_64;then
+echo qemu-user-static >> ${script_path}/packages.${arch}
+echo qemu-user-static-binfmt >> ${script_path}/packages.${arch}
+fi 
+if echo $arch|grep -qw i686;then
+echo archlinux32-keyring >> ${script_path}/packages.${arch}
+fi
+if echo $arch|grep -qw aarch64;then
+echo archlinuxarm-keyring >> ${script_path}/packages.${arch}
+fi
 while true;do
 if pacstrap -C "${work_dir}/pacman.${arch}.conf" -M -G "${work_dir}/${arch}/airootfs" --needed --overwrite \\* `cat ${script_path}/packages.${arch}|tr \\\\n \\  `;then
 rm -rf "${work_dir}/${arch}/airootfs/var/cache/pacman/pkg/"*

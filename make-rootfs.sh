@@ -235,7 +235,7 @@ rm -rf "${work_dir}/${arch}/airootfs/etc/pacman.d/gnupg" "${work_dir}/${arch}/ai
 cat >> dockerfile.`echo -en $dockerplat|sed "s|--platform linux\/||g"|tr / +`<<EOF
 FROM scratch
 COPY "${work_dir}/${arch}/airootfs/" /
-ONBUILD RUN pacman-key --init&&pacman-key --populate&&pacman --noconfirm -Syu
+ONBUILD RUN pacman-key --init&&pacman-key --populate
 EOF
 docker build --tag $jenux_iso_docker_repo":"jenux-${preset}-${arch} $dockerplat . -f dockerfile.`echo -en $dockerplat|sed "s|--platform linux\/||g"|tr / +`
 docker push $jenux_iso_docker_repo":"jenux-${preset}-${arch} `echo -en $dockerplat`

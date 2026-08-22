@@ -176,18 +176,18 @@ rm installtest.${arch}
 cat ${script_path}/packages.${arch}|tr \\n \  |sed "s| linux | linux-aarch64 linux-aarch64-headers raspberrypi-bootloader firmware-raspberrypi pi-bluetooth hciattach-rpi3 fbdetect |g;s| linux-headers | |g"|tr \  \\n |sort|uniq > pkg.$arch
 mv pkg.$arch ${script_path}/packages.${arch}
 fi
+export isopkgs=`echo -en base grub lynx curl dosfstools e2fsprogs squashfs-tools arch-install-scripts mkinitcpio-archiso sbsigntools shim-signed git gptfdisk parted unzip dos2unix qemu-img pv`
 if echo $arch|grep -qw x86_64;then
-echo qemu-user-static >> ${script_path}/packages.${arch}
-echo qemu-user-static-binfmt >> ${script_path}/packages.${arch}
-fi 
+export isopkgs=`echo -en $isopkgs`" qemu-user-static qemu-user-static-binfmt "
+fi
 if echo $arch|grep -qw i686;then
-echo archlinux32-keyring >> ${script_path}/packages.${arch}
+export isopkgs=`echo -en $isopkgs`" archlinux32-keyring "
 fi
 if echo $arch|grep -qw aarch64;then
-echo archlinuxarm-keyring >> ${script_path}/packages.${arch}
+export isopkgs=`echo -en $isopkgs`" archlinuxarm-keyring "
 fi
 while true;do
-if pacstrap -C "${work_dir}/pacman.${arch}.conf" -M -G "${work_dir}/${arch}/airootfs" --needed --overwrite \\* `cat ${script_path}/packages.${arch}|tr \\\\n \\  `;then
+if pacstrap -C "${work_dir}/pacman.${arch}.conf" -M -G "${work_dir}/${arch}/airootfs" --needed --overwrite \\* `echo -en $isopkgs`;then
 rm -rf "${work_dir}/${arch}/airootfs/var/cache/pacman/pkg/"*
 break
 else

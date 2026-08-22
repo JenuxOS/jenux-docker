@@ -41,7 +41,7 @@ jobs:
         run: docker build . -t containerbuild
 
       - name: Run Docker container
-        RUN: |
+        run: |
           docker run \
           --privileged \
           --rm \

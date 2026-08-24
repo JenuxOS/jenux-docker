@@ -9,7 +9,7 @@ on:
       main
   workflow_dispatch:
   schedule:
-   - cron: 4 0 * * *
+   - cron: 0 22 * * *
 
 jobs:
   build:
@@ -19,7 +19,7 @@ jobs:
     
     name: build
     runs-on: 'ubuntu-latest'
-    timeout-minutes: 240
+    timeout-minutes: 50
     steps:
       - name: Checkout code
         uses: actions/checkout@v5

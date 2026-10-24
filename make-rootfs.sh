@@ -219,7 +219,7 @@ armv7h)
 export dockerplat="--platform linux/arm/v7"
 ;;
 aarch64)
-export dockerplat="--platform linux/aarch64"
+export dockerplat="--platform linux/arm64/v8"
 ;;
 i686)
 export dockerplat="--platform linux/i686"

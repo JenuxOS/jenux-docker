@@ -188,7 +188,6 @@ export isopkgs=`echo -en $isopkgs`" archlinuxarm-keyring "
 fi
 while true;do
 if pacstrap -C "${work_dir}/pacman.${arch}.conf" -M -G "${work_dir}/${arch}/airootfs" --needed --overwrite \\* `echo -en $isopkgs`;then
-arch-chroot "${work_dir}/${arch}/airootfs"  update-ca-trust
 rm -rf "${work_dir}/${arch}/airootfs/var/cache/pacman/pkg/"*
 break
 else
@@ -233,10 +232,11 @@ export dockerplat="--platform linux/"${arch}
 ;;
 esac
 rm -rf "${work_dir}/${arch}/airootfs/etc/pacman.d/gnupg" "${work_dir}/${arch}/airootfs//etc/pacman.d/hooks"
+export PATH=/usr/bin:/usr/local/bin:/usr/local/sbin
 cat >> dockerfile.`echo -en $dockerplat|sed "s|--platform linux\/||g"|tr / +`<<EOF
 FROM scratch
 COPY "${work_dir}/${arch}/airootfs/" /
-ONBUILD RUN pacman-key --init&&pacman-key --populate
+ONBUILD RUN pacman-key --init&&pacman-key --populate&&update-ca-trust
 EOF
 docker build --tag $jenux_iso_docker_repo":"jenux-${preset}-${arch} $dockerplat . -f dockerfile.`echo -en $dockerplat|sed "s|--platform linux\/||g"|tr / +`
 docker push $jenux_iso_docker_repo":"jenux-${preset}-${arch} `echo -en $dockerplat`

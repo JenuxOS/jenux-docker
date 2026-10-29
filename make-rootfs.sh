@@ -96,7 +96,15 @@ fi
 if [ $arch = "i686" ];then
 mkdir -p "${work_dir}/${arch}/airootfs/etc/pacman.d"
 while true;do
-if curl -Lo "${work_dir}/${arch}/airootfs/etc/pacman.d/mirrorlist" https://git.archlinux32.org/packages/plain/core/pacman-mirrorlist/mirrorlist;then
+export arch32mirrorurl=`lynx -listonly -nonumbers --dump https://mirror.math.princeton.edu/pub/archlinux32/i686/core|grep -i mirrorlist|sed /sig/d|tail -n 1`
+if [ -z $arch32mirrorurl ];then
+continue
+else
+break
+fi
+done
+while true;do
+if curl -L $arch32mirrorurl|tar -C "${work_dir}/${arch}/airootfs etc/pacman.d/mirrorlist;then
 break
 else
 continue

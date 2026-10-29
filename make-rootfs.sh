@@ -39,6 +39,9 @@ work_dir=work
 script_path=$(readlink -f ${0%/*})
 if [ -e /.dockerenv ];then
 mount -t devtmpfs /dev /dev
+for f in `ls /lib/binfmt.d/*`;do
+/lib/systemd/systemd-binfmt  $f
+done
 fi
 run_once() {
     if [[ ! -e ${work_dir}/build.${1}_${arch} ]]; then

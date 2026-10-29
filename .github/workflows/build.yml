@@ -45,6 +45,7 @@ jobs:
           docker run \
           --privileged \
           --rm \
+          --volume /proc/sys/fs/binfmt_misc:/proc/sys/fs/binfmt_misc \
           --volume /var/run/docker:/var/run/docker \
           --volume /var/run/docker.sock:/var/run/docker.sock \
           --env-file .env \

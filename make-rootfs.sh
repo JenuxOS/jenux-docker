@@ -104,7 +104,7 @@ break
 fi
 done
 while true;do
-if curl -L $arch32mirrorurl|tar -C "${work_dir}/${arch}/airootfs" -x etc/pacman.d/mirrorlist;then
+if curl -L $arch32mirrorurl|tar -C "${work_dir}/${arch}/airootfs" -x --zstd etc/pacman.d/mirrorlist;then
 break
 else
 continue

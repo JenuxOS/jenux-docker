@@ -36,6 +36,7 @@ jobs:
           cat >> .env<<EOF
           DOCKERUSERNAME=${{ secrets.DOCKERUSERNAME }}
           DOCKERPAT=${{ secrets.DOCKERPAT }}
+          baseurl=https://raw.githubusercontent.com/JenuxOS/jenux-resources/main
           EOF
       - name: Build Docker image
         run: docker build . -t containerbuild

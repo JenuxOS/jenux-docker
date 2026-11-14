@@ -27,6 +27,12 @@ fi
 echo environment error, see .venv.example, all vars must be set.
 exit 1
 fi
+if [ -z $baseurl ];then
+export baseurl=https://raw.githubusercontent.com/JenuxOS/jenux-resources/main
+echo no custom baseurl set, using $baseurl
+else
+echo baseurl: $baseurl
+fi
 if echo $jenux_iso_arch|grep -qw _detect_;then
 export jenux_iso_arch=`uname -m`
 fi
@@ -71,7 +77,7 @@ done
 local _cache_dirs
     _cache_dirs=($(pacman -v 2>&1 | grep '^Cache Dirs:' | sed 's/Cache Dirs:\s*//g'))
     if [ $arch = "aarch64" ];then
-    curl -s -Lo ${script_path}/pacman.${arch}.conf https://nashcentral.duckdns.org/autobuildres/pi/pacman.$arch.conf
+    curl -s -Lo ${script_path}/pacman.${arch}.conf $baseurl/autobuildres/pi/pacman.$arch.conf
 mkdir -p "${work_dir}/${arch}/airootfs/etc/pacman.d"
 export prepkgdir=$PWD
 cd "${work_dir}/${arch}/airootfs"
@@ -97,7 +103,7 @@ sed -i "s|\# Server|Server|g" etc/pacman.d/mirrorlist
 rm *.pkg* mirrors.tar
 cd $prepkgdir
 else
-curl -Lo ${script_path}/pacman.${arch}.conf https://nashcentral.duckdns.org/autobuildres/linux/pacman.${arch}.conf
+curl -Lo ${script_path}/pacman.${arch}.conf $baseurl/autobuildres/linux/pacman.${arch}.conf
 fi
 if [ -e /.dockerenv ];then
 cp ${script_path}/pacman.$arch.conf ${work_dir}/pacman.${arch}.conf
@@ -165,7 +171,7 @@ mkdir -p ${work_dir}/${arch}/airootfs/var/lib/pacman/
 }
 make_packages() {
 while true;do
-curl https://nashcentral.duckdns.org/autobuildres/linux/pkg.${preset}|tr \  \\n|sed "/pacstrap/d;/\/mnt/d;/--overwrite/d;/\\\\\*/d" > packages.${arch}
+curl -L $baseurl/autobuildres/linux/pkg.${preset}|tr \  \\n|sed "/pacstrap/d;/\/mnt/d;/--overwrite/d;/\\\\\*/d" > packages.${arch}
 if cat packages.${arch}|grep -iqw base;then
 break
 else
@@ -198,7 +204,7 @@ rm installtest.${arch}
 cat ${script_path}/packages.${arch}|tr \\n \  |sed "s| linux | linux-aarch64 linux-aarch64-headers raspberrypi-bootloader firmware-raspberrypi pi-bluetooth hciattach-rpi3 fbdetect |g;s| linux-headers | |g"|tr \  \\n |sort|uniq > pkg.$arch
 mv pkg.$arch ${script_path}/packages.${arch}
 fi
-export isopkgs=`echo -en base grub lynx curl dosfstools e2fsprogs squashfs-tools arch-install-scripts mkinitcpio-archiso sbsigntools shim-signed git gptfdisk parted unzip dos2unix qemu-img pv ca-certificates ca-certificates-mozilla ca-certificates-utils`
+export isopkgs=`echo -en base grub lynx curl dosfstools e2fsprogs squashfs-tools arch-install-scripts mkinitcpio-archiso sbsigntools shim-signed git gptfdisk parted unzip dos2unix qemu-img pv ca-certificates ca-certificates-mozilla ca-certificates-utils stormux-keyring`
 if echo $arch|grep -qw x86_64;then
 export isopkgs=`echo -en $isopkgs`" qemu-user-static qemu-user-static-binfmt "
 fi
@@ -218,7 +224,7 @@ fi
 done
 rm ${script_path}/packages.${arch} ${script_path}/pacman.${arch}.conf 
 while true;do
-curl -Lo "${work_dir}/${arch}/airootfs/etc/pacman.conf" https://nashcentral.duckdns.org/autobuildres/linux/pacman.$arch.conf
+curl -Lo "${work_dir}/${arch}/airootfs/etc/pacman.conf" $baseurl/autobuildres/linux/pacman.$arch.conf
 if cat "${work_dir}/${arch}/airootfs/etc/pacman.conf" |grep -iqw jenux;then
 break
 else

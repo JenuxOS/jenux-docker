@@ -27,12 +27,6 @@ fi
 echo environment error, see .venv.example, all vars must be set.
 exit 1
 fi
-if [ -z $baseurl ];then
-export baseurl=https://raw.githubusercontent.com/JenuxOS/jenux-resources/main
-echo no custom baseurl set, using $baseurl
-else
-echo baseurl: $baseurl
-fi
 if echo $jenux_iso_arch|grep -qw _detect_;then
 export jenux_iso_arch=`uname -m`
 fi

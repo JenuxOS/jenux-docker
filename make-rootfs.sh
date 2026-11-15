@@ -35,6 +35,12 @@ export arch=$jenux_iso_arch
 if echo $jenux_iso_arch|grep -iqw all;then
 unset arch
 fi
+if [ -z $baseurl ];then
+export baseurl=https://raw.githubusercontent.com/JenuxOS/jenux-resources/main
+echo no custom baseurl set, using $baseurl
+else
+echo baseurl: $baseurl
+fi
 work_dir=work
 script_path=$(readlink -f ${0%/*})
 if [ -e /.dockerenv ];then

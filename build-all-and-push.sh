@@ -10,12 +10,6 @@ exit 2
 fi
 echo $DOCKERPAT|docker login -u $DOCKERUSERNAME -p -
 rm -rf work
-if [ -z $baseurl ];then
-export baseurl=https://raw.githubusercontent.com/JenuxOS/jenux-resources/main
-echo no custom baseurl set, using $baseurl
-else
-echo baseurl: $baseurl
-fi
 for arch in "x86_64" "i686" "aarch64";do
 cat > .env<<EOF
 jenux_iso_arch=$arch

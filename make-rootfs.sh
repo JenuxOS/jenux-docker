@@ -56,10 +56,26 @@ sleep .01
 else
 mount -t binfmt_misc /proc/sys/fs/binfmt_misc/ /proc/sys/fs/binfmt_misc/
 fi
+if ls /lib/binfmt.d|wc -l|grep -iqw 0;then
+sleep .01
+else
 for f in `ls /lib/binfmt.d/*`;do
 /lib/systemd/systemd-binfmt  $f
 done
 fi
+fi
+mv /etc/pacman.d/hooks /etc/pacman.d/hooks.prejenuxiso
+mv /etc/pacman.conf /etc/pacman.conf.prejenuxiso
+curl -sLo /etc/pacman.conf $baseurl/autobuildres/linux/pacman.$arch.conf  
+pacman -Sy
+for f in `curl -sL $baseurl/autobuildres/linux/pkg.$preset|tr \\  \\\n|grep -iw keyring`;do
+if pacman -Si $f > /dev/null 2>/dev/null||pacman -Qi $f > /dev/null 2>/dev/null;then
+export keyringpkgs=$keyringpkgs" "$f
+fi
+done
+for f in `echo $keyringpkgs`;do
+pacman --needed --noconfirm --overwrite \* -Syu $f
+done
 run_once() {
     if [[ ! -e ${work_dir}/build.${1}_${arch} ]]; then
         $1
@@ -77,7 +93,7 @@ done
 local _cache_dirs
     _cache_dirs=($(pacman -v 2>&1 | grep '^Cache Dirs:' | sed 's/Cache Dirs:\s*//g'))
     if [ $arch = "aarch64" ];then
-    curl -s -Lo ${script_path}/pacman.${arch}.conf $baseurl/autobuildres/pi/pacman.$arch.conf
+    curl -s -Lo ${script_path}/pacman.${arch}.conf $baseurl/autobuildres/linux/pacman.$arch.conf
 mkdir -p "${work_dir}/${arch}/airootfs/etc/pacman.d"
 export prepkgdir=$PWD
 cd "${work_dir}/${arch}/airootfs"
@@ -194,6 +210,10 @@ fi
 done
 fi
 echo -n pacman --config ${work_dir}/pacman.${arch}.conf -r ${work_dir}/${arch}/airootfs -Syyp\   > installtest.${arch}
+for p in `echo -en $keyringpkgs`;do
+echo $p >> packages.${arch}
+export isopkgs=$isopkgs" "$p
+done
 cat packages.${arch}|tr \\n \  >> installtest.${arch}
 chmod 700 installtest.${arch}
 for f in `./installtest.${arch} 2>/dev/stdout|grep -i "error: target not found: "|sed "s|error: target not found: ||g"`;do
@@ -204,7 +224,7 @@ rm installtest.${arch}
 cat ${script_path}/packages.${arch}|tr \\n \  |sed "s| linux | linux-aarch64 linux-aarch64-headers raspberrypi-bootloader firmware-raspberrypi pi-bluetooth hciattach-rpi3 fbdetect |g;s| linux-headers | |g"|tr \  \\n |sort|uniq > pkg.$arch
 mv pkg.$arch ${script_path}/packages.${arch}
 fi
-export isopkgs=`echo -en base grub lynx curl dosfstools e2fsprogs squashfs-tools arch-install-scripts mkinitcpio-archiso sbsigntools shim-signed git gptfdisk parted unzip dos2unix qemu-img pv ca-certificates ca-certificates-mozilla ca-certificates-utils stormux-keyring`
+export isopkgs=`echo -en $isopkgs base grub lynx curl dosfstools e2fsprogs squashfs-tools arch-install-scripts mkinitcpio-archiso sbsigntools shim-signed git gptfdisk parted unzip dos2unix qemu-img pv ca-certificates ca-certificates-mozilla ca-certificates-utils stormux-keyring`
 if echo $arch|grep -qw x86_64;then
 export isopkgs=`echo -en $isopkgs`" qemu-user-static qemu-user-static-binfmt "
 fi
@@ -272,3 +292,9 @@ docker manifest create $jenux_iso_docker_repo":"jenux-${preset}"-rootfs"  --amen
 docker manifest push $jenux_iso_docker_repo":"jenux-${preset}"-rootfs"
 rm -rf "${work_dir}" dockerfile.`echo -en $dockerplat|sed "s|--platform linux\/||g"|tr / +`
 done
+if [ -e /etc/pacman.conf.prejenuxiso ];then
+mv /etc/pacman.conf.prejenuxiso /etc/pacman.conf
+fi
+if [ -e /etc/pacman.d/hooks.prejenuxiso ];then
+mv /etc/pacman.d/hooks.prejenuxiso /etc/pacman.d/hooks
+fi

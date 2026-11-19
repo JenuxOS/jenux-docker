@@ -64,12 +64,8 @@ for f in `ls /lib/binfmt.d/*`;do
 done
 fi
 fi
-mv /etc/pacman.d/hooks /etc/pacman.d/hooks.prejenuxiso
-mv /etc/pacman.conf /etc/pacman.conf.prejenuxiso
-curl -sLo /etc/pacman.conf $baseurl/autobuildres/linux/pacman.$arch.conf  
-pacman -Sy
 for f in `curl -sL $baseurl/autobuildres/linux/pkg.$preset|tr \\  \\\n|grep -iw keyring`;do
-if pacman -Si $f > /dev/null 2>/dev/null||pacman -Qi $f > /dev/null 2>/dev/null;then
+if pacman -Si $f > /dev/null 2>/dev/null;then
 export keyringpkgs=$keyringpkgs" "$f
 fi
 done
@@ -292,9 +288,3 @@ docker manifest create $jenux_iso_docker_repo":"jenux-${preset}"-rootfs"  --amen
 docker manifest push $jenux_iso_docker_repo":"jenux-${preset}"-rootfs"
 rm -rf "${work_dir}" dockerfile.`echo -en $dockerplat|sed "s|--platform linux\/||g"|tr / +`
 done
-if [ -e /etc/pacman.conf.prejenuxiso ];then
-mv /etc/pacman.conf.prejenuxiso /etc/pacman.conf
-fi
-if [ -e /etc/pacman.d/hooks.prejenuxiso ];then
-mv /etc/pacman.d/hooks.prejenuxiso /etc/pacman.d/hooks
-fi

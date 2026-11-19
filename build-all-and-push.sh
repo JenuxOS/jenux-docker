@@ -10,7 +10,7 @@ exit 2
 fi
 mv /etc/pacman.d/hooks /etc/pacman.d/hooks.prejenuxiso
 cp /etc/pacman.conf /etc/pacman.conf.prejenuxiso
-curl -sLo /etc/pacman.conf $baseurl/autobuildres/linux/pacman.$arch.conf
+curl -sLo /etc/pacman.conf $baseurl/autobuildres/linux/pacman.conf
 pacman -Sy
 echo $DOCKERPAT|docker login -u $DOCKERUSERNAME -p -
 rm -rf work
